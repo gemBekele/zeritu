@@ -108,7 +108,7 @@ export function Hero() {
           className="relative h-[500px] lg:h-[700px] w-full"
         >
           <Image
-            src={encodeURI("/images/aaBackground copy 2@0.25x@0.25x.png")}
+            src={encodeURI("/images/aaa.png")}
             // src="/images/Background copy 2-min.png"
             alt="Zeritu Kebede Portrait"
             fill
