@@ -17,16 +17,23 @@ This guide will walk you through deploying the Zeritu application on a VPS using
 sudo apt update && sudo apt upgrade -y
 ```
 
-### 1.2 Install Node.js (18+)
+### 1.2 Install Node.js (20+ Required)
+
+**Important:** Next.js 16 requires Node.js >= 20.9.0. Make sure to install Node.js 20.x or later.
 
 ```bash
-# Install Node.js 20.x (LTS)
+# Install Node.js 20.x (LTS) - Required for Next.js 16
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 
-# Verify installation
+# Verify installation (should show v20.x.x or higher)
 node --version
 npm --version
+
+# If you have an older version, remove it first:
+# sudo apt remove nodejs npm
+# sudo apt autoremove
+# Then run the installation commands above again
 ```
 
 ### 1.3 Install PostgreSQL
@@ -217,7 +224,7 @@ nano .env.local
 Add:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.yourdomain.com
+NEXT_PUBLIC_API_URL=http://localhost:3006/api
 # Or if backend is on same domain:
 # NEXT_PUBLIC_API_URL=https://yourdomain.com/api
 ```
