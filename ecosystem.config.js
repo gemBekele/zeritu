@@ -2,16 +2,16 @@ module.exports = {
   apps: [
     {
       name: 'zeritu-backend',
-      cwd: '/var/www/zeritu/zeritu_backend',
+      cwd: '/home/barch/zeritu/zeritu_backend',
       script: './start.sh',
       interpreter: 'bash',
       env: {
         NODE_ENV: 'production',
         PORT: 3006
       },
-      error_file: '/var/www/zeritu/logs/backend-error.log',
-      out_file: '/var/www/zeritu/logs/backend-out.log',
-      log_file: '/var/www/zeritu/logs/backend-combined.log',
+      error_file: '/home/barch/zeritu/logs/backend-error.log',
+      out_file: '/home/barch/zeritu/logs/backend-out.log',
+      log_file: '/home/barch/zeritu/logs/backend-combined.log',
       time: true,
       instances: 1,
       autorestart: true,
@@ -20,16 +20,16 @@ module.exports = {
     },
     {
       name: 'zeritu-frontend',
-      cwd: '/var/www/zeritu/zeritu_web',
+      cwd: '/home/barch/zeritu/zeritu_web',
       script: './start.sh',
       interpreter: 'bash',
       env: {
         NODE_ENV: 'production',
         PORT: 3007
       },
-      error_file: '/var/www/zeritu/logs/frontend-error.log',
-      out_file: '/var/www/zeritu/logs/frontend-out.log',
-      log_file: '/var/www/zeritu/logs/frontend-combined.log',
+      error_file: '/home/barch/zeritu/logs/frontend-error.log',
+      out_file: '/home/barch/zeritu/logs/frontend-out.log',
+      log_file: '/home/barch/zeritu/logs/frontend-combined.log',
       time: true,
       instances: 1,
       autorestart: true,
