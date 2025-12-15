@@ -4,6 +4,29 @@
 
 If you're getting `P1000: Authentication failed` errors, follow these steps:
 
+### Quick Checklist First
+
+Before diving deep, check these common issues:
+
+1. **Password typo in `.env`**: Make sure the password in your `.env` file exactly matches what you set in PostgreSQL
+   - Check for extra characters, missing characters, or typos
+   - Example: `30433043` not `304330433` or `3043304`
+
+2. **Missing quotes in `.env`**: Ensure DATABASE_URL has quotes
+   - ✅ Correct: `DATABASE_URL="postgresql://zeritu:30433043@localhost:5432/zeritu_db?schema=public"`
+   - ❌ Wrong: `DATABASE_URL=postgresql://zeritu:30433043@localhost:5432/zeritu_db?schema=public`
+
+3. **Username mismatch**: The username in DATABASE_URL must match the PostgreSQL user you created
+   - If you created user `zeritu`, use `zeritu` in the connection string
+   - If you created user `chenaniah`, use `chenaniah` in the connection string
+
+4. **Test connection manually**:
+   ```bash
+   psql -U zeritu -d zeritu_db -h localhost
+   # Enter password when prompted
+   ```
+   If this works but Prisma doesn't, it's likely a `pg_hba.conf` configuration issue.
+
 ## Step 1: Verify PostgreSQL User Exists
 
 Connect to PostgreSQL as the postgres superuser:
@@ -64,7 +87,14 @@ OR if using `chenaniah`:
 DATABASE_URL="postgresql://chenaniah:30433043@localhost:5432/zeritu_db?schema=public"
 ```
 
-## Step 4: Configure PostgreSQL Authentication (if still failing)
+## Step 4: Fix Common Password Issues
+
+**Common mistake:** Typos in the password in `.env` file. Double-check:
+- Password in `.env`: `30433043` (not `304330433` or other variations)
+- Make sure the DATABASE_URL has quotes: `DATABASE_URL="postgresql://..."`
+- No extra spaces or special characters
+
+## Step 5: Configure PostgreSQL Authentication (if still failing)
 
 Edit PostgreSQL's authentication configuration:
 
@@ -90,7 +120,12 @@ Then restart PostgreSQL:
 sudo systemctl restart postgresql
 ```
 
-## Step 5: Test Connection
+**Important:** After changing `pg_hba.conf`, you MUST restart PostgreSQL for changes to take effect:
+```bash
+sudo systemctl restart postgresql
+```
+
+## Step 6: Test Connection
 
 Test the connection from command line:
 
@@ -101,7 +136,7 @@ psql -U zeritu -d zeritu_db -h localhost
 
 If this works, your credentials are correct.
 
-## Step 6: Fix Prisma Migrate Shadow Database Issue
+## Step 7: Fix Prisma Migrate Shadow Database Issue
 
 Prisma Migrate needs permission to create a shadow database. You have two options:
 
@@ -121,7 +156,7 @@ npm run db:push
 
 This pushes the schema directly without needing a shadow database.
 
-## Step 7: Run Database Setup
+## Step 8: Run Database Setup
 
 After fixing authentication:
 
