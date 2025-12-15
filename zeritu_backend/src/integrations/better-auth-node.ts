@@ -1,16 +1,23 @@
 // Local wrapper for better-auth node integration
 // This is needed because better-auth/integrations/node is not exported in package.json
 import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Calculate path to better-call node module
+// Using process.cwd() to get project root (works in both dev and production)
+// At runtime in CommonJS, __dirname will be available, but for TypeScript compilation
+// we use a relative path from the project root
+const getBetterCallPath = (): string => {
+  // Try to use __dirname at runtime (available in CommonJS)
+  // @ts-ignore - __dirname is available in CommonJS but TypeScript doesn't recognize it
+  if (typeof __dirname !== 'undefined') {
+    // @ts-ignore
+    return path.resolve(__dirname, '../../node_modules/better-auth/node_modules/better-call/dist/node.js');
+  }
+  // Fallback to process.cwd() (project root)
+  return path.resolve(process.cwd(), 'node_modules/better-auth/node_modules/better-call/dist/node.js');
+};
 
-// Import from the dist file directly
-const betterCallNodePath = path.resolve(
-  __dirname,
-  '../../node_modules/better-auth/node_modules/better-call/dist/node.js'
-);
+const betterCallNodePath = getBetterCallPath();
 
 let toNodeHandlerImpl: any;
 
