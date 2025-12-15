@@ -7,10 +7,10 @@ import { useOrder } from "@/hooks/use-orders";
 import { ordersApi } from "@/lib/api/orders";
 import { CheckCircle, Loader2, RefreshCw } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
   const { data: order, isLoading, refetch } = useOrder(orderId || "");
@@ -180,6 +180,18 @@ export default function CheckoutSuccessPage() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function CheckoutSuccessPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    }>
+      <CheckoutSuccessContent />
+    </Suspense>
   );
 }
 
