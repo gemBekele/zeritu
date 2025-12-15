@@ -45,8 +45,8 @@ sudo -u postgres psql
 Inside PostgreSQL shell:
 ```sql
 CREATE DATABASE zeritu_db;
-CREATE USER zeritu_user WITH PASSWORD 'your_secure_password';
-GRANT ALL PRIVILEGES ON DATABASE zeritu_db TO zeritu_user;
+CREATE USER zeritu WITH PASSWORD '30433043';
+GRANT ALL PRIVILEGES ON DATABASE zeritu_db TO zeritu;
 \q
 ```
 
@@ -109,7 +109,7 @@ Add the following configuration:
 
 ```env
 # Database
-DATABASE_URL="postgresql://zeritu_user:your_secure_password@localhost:5432/zeritu_db?schema=public"
+DATABASE_URL="postgresql://zeritu:30433043@localhost:5432/zeritu_db?schema=public"
 
 # BetterAuth - Generate with: openssl rand -base64 32
 BETTER_AUTH_SECRET="your-random-secret-here"
@@ -141,18 +141,42 @@ MAX_FILE_SIZE=5242880
 
 ### 3.3 Setup Database
 
+First, grant necessary permissions to your database user:
+
+```bash
+sudo -u postgres psql << EOSQL
+-- Grant SUPERUSER to allow Prisma Migrate to create shadow database
+ALTER USER zeritu WITH SUPERUSER;
+GRANT ALL PRIVILEGES ON DATABASE zeritu_db TO zeritu;
+\c zeritu_db
+GRANT ALL PRIVILEGES ON SCHEMA public TO zeritu;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO zeritu;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO zeritu;
+EOSQL
+```
+
+**Note:** For production, you might want to create a separate user without SUPERUSER and configure Prisma to use a separate shadow database. For development/simple setups, SUPERUSER is fine.
+
+Then run Prisma setup:
+
 ```bash
 # Generate Prisma Client
 npm run db:generate
 
-# Run migrations
-npm run db:migrate
-# Or use db:push for development
-# npm run db:push
+# For initial setup, use db:push (doesn't require shadow database)
+npm run db:push
+
+# OR if you want to use migrations (requires shadow database or SUPERUSER)
+# npm run db:migrate
 
 # (Optional) Seed database
 npm run db:seed
 ```
+
+**Troubleshooting:** If you encounter authentication errors, make sure:
+1. The username and password in `.env` match the PostgreSQL user you created
+2. The user has the necessary permissions (see commands above)
+3. PostgreSQL is configured to accept password authentication (check `/etc/postgresql/*/main/pg_hba.conf` if needed)
 
 ### 3.4 Create Uploads Directory
 
