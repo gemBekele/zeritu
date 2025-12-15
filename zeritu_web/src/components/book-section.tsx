@@ -42,12 +42,13 @@ export function BookSection({
       )}>
         <div className="absolute right-[-300] top-0 h-full w-full lg:w-[100%]">
           <Image
-            src={imageSrc}
+            src={encodeURI(imageSrc)}
             alt="Book Cover"
             fill
             sizes="(max-width: 1024px) 100vw, 85vw"
             className="object-cover object-center"
             priority
+            unoptimized
           />
         </div>
         
@@ -88,7 +89,7 @@ export function BookSection({
                 reverse && "scale-x-[-1]"
               )}>
                 <Image 
-                  src={titleImageSrc} 
+                  src={encodeURI(titleImageSrc)} 
                   alt={title} 
                   fill 
                   sizes="(max-width: 768px) 100vw, 400px"
@@ -96,6 +97,7 @@ export function BookSection({
                     "object-contain",
                     reverse ? "object-right" : "object-left"
                   )}
+                  unoptimized
                 />
               </div>
             ) : (

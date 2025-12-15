@@ -108,13 +108,14 @@ export function Hero() {
           className="relative h-[500px] lg:h-[700px] w-full"
         >
           <Image
-            src="/images/aaBackground copy 2@0.25x@0.25x.png"
+            src={encodeURI("/images/aaBackground copy 2@0.25x@0.25x.png")}
             // src="/images/Background copy 2-min.png"
             alt="Zeritu Kebede Portrait"
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="object-contain object-center drop-shadow-2xl"
             priority
+            unoptimized
           />
         </motion.div>
       </Container>

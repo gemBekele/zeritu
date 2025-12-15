@@ -21,7 +21,18 @@ const nextConfig: NextConfig = {
         hostname: "localhost",
         port: "3002",
       },
+      {
+        protocol: "http",
+        hostname: "15.204.227.47",
+        port: "3006",
+      },
     ],
+    // Allow unoptimized images to handle files with spaces/special characters
+    unoptimized: false,
+    // Disable dangerous allow list since we're using remotePatterns
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 
