@@ -3,11 +3,16 @@ module.exports = {
     {
       name: 'zeritu-backend',
       cwd: '/var/www/zeritu/zeritu_backend',
-      script: './start.sh',
-      interpreter: 'bash',
+      // Use interpreter from NVM
+      interpreter: process.env.NVM_DIR ? `${process.env.HOME}/.nvm/versions/node/v20.*/bin/node` : 'node',
+      script: 'npm',
+      args: 'start',
       env: {
         NODE_ENV: 'production',
-        PORT: 3006
+        PORT: 3006,
+        // Load NVM in the environment
+        NVM_DIR: process.env.NVM_DIR || `${process.env.HOME}/.nvm`,
+        PATH: process.env.NVM_DIR ? `${process.env.HOME}/.nvm/versions/node/v20.*/bin:${process.env.PATH}` : process.env.PATH
       },
       error_file: '/var/www/zeritu/logs/backend-error.log',
       out_file: '/var/www/zeritu/logs/backend-out.log',
@@ -21,11 +26,16 @@ module.exports = {
     {
       name: 'zeritu-frontend',
       cwd: '/var/www/zeritu/zeritu_web',
-      script: './start.sh',
-      interpreter: 'bash',
+      // Use interpreter from NVM
+      interpreter: process.env.NVM_DIR ? `${process.env.HOME}/.nvm/versions/node/v20.*/bin/node` : 'node',
+      script: 'npm',
+      args: 'start',
       env: {
         NODE_ENV: 'production',
-        PORT: 3007
+        PORT: 3007,
+        // Load NVM in the environment
+        NVM_DIR: process.env.NVM_DIR || `${process.env.HOME}/.nvm`,
+        PATH: process.env.NVM_DIR ? `${process.env.HOME}/.nvm/versions/node/v20.*/bin:${process.env.PATH}` : process.env.PATH
       },
       error_file: '/var/www/zeritu/logs/frontend-error.log',
       out_file: '/var/www/zeritu/logs/frontend-out.log',
