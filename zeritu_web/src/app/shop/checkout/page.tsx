@@ -12,6 +12,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { getImageUrl } from "@/lib/utils";
 
+interface CheckoutFormData {
+  shippingName: string;
+  shippingEmail: string;
+  shippingPhone: string;
+  shippingAddress: string;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, totalPrice, isLoading: cartLoading, updateQuantity } = useCart();
@@ -19,7 +26,7 @@ export default function CheckoutPage() {
   const createOrder = useCreateOrder();
 
   // Restore form data from sessionStorage if available (after login redirect)
-  const [formData, setFormData] = useState(() => {
+  const [formData, setFormData] = useState<CheckoutFormData>(() => {
     if (typeof window !== 'undefined') {
       const saved = sessionStorage.getItem('checkoutFormData');
       if (saved) {
@@ -45,7 +52,7 @@ export default function CheckoutPage() {
   // Update form data when user logs in
   useEffect(() => {
     if (user && !formData.shippingName && !formData.shippingEmail) {
-      setFormData(prev => ({
+      setFormData((prev: CheckoutFormData) => ({
         ...prev,
         shippingName: user.name || prev.shippingName,
         shippingEmail: user.email || prev.shippingEmail,
