@@ -57,10 +57,35 @@ export const useDeleteEvent = () => {
   });
 };
 
+export const useEventRegistrations = (eventId: string) => {
+  return useQuery({
+    queryKey: ['events', eventId, 'registrations'],
+    queryFn: () => eventsApi.getRegistrations(eventId),
+    enabled: !!eventId,
+  });
+};
 
+export const useRegisterForEvent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, data }: { eventId: string; data: { name: string; email: string; phone?: string; quantity?: number } }) =>
+      eventsApi.register(eventId, data),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId] });
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId, 'registrations'] });
+    },
+  });
+};
 
-
-
-
+export const useCancelRegistration = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ eventId, regId }: { eventId: string; regId: string }) =>
+      eventsApi.cancelRegistration(eventId, regId),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['events', variables.eventId, 'registrations'] });
+    },
+  });
+};
 
 

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   images: {
     remotePatterns: [
       {
@@ -10,6 +11,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "img.youtube.com",
+      },
+      {
+        protocol: "https",
+        hostname: "open.spotify.com",
       },
       {
         protocol: "http",
@@ -27,8 +32,8 @@ const nextConfig: NextConfig = {
         port: "3006",
       },
     ],
-    // Allow unoptimized images to handle files with spaces/special characters
-    unoptimized: false,
+    // Allow unoptimized images to handle files with spaces/special characters and backend uploads
+    unoptimized: true,
     // Disable dangerous allow list since we're using remotePatterns
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',

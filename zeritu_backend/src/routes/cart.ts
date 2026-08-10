@@ -52,6 +52,23 @@ router.post('/', requireAuth, async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'Product is not available' });
     }
 
+    // Check existing cart item to calculate new total quantity
+    const existingItem = await prisma.cartItem.findUnique({
+      where: {
+        userId_productId: {
+          userId: req.user!.id,
+          productId: body.productId,
+        },
+      },
+    });
+
+    const newQuantity = (existingItem?.quantity || 0) + body.quantity;
+    if (newQuantity > product.stock) {
+      return res.status(400).json({
+        error: `Insufficient stock for "${product.title}". Available: ${product.stock}, requested: ${newQuantity}`,
+      });
+    }
+
     // Upsert cart item
     const cartItem = await prisma.cartItem.upsert({
       where: {

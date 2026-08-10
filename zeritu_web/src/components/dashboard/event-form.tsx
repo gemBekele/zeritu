@@ -2,35 +2,31 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useCreateProduct, useUpdateProduct } from "@/hooks/use-products";
-import { Product, CreateProductData } from "@/lib/api/products";
-import { getImageUrl } from "@/lib/utils";
+import { useCreateEvent, useUpdateEvent } from "@/hooks/use-events";
+import { Event } from "@/lib/api/events";
 import { Loader2, X } from "lucide-react";
 
-interface ProductFormProps {
-  product?: Product;
+interface EventFormProps {
+  event?: Event;
   onClose: () => void;
 }
 
-export function ProductForm({ product, onClose }: ProductFormProps) {
-  const [formData, setFormData] = useState<CreateProductData>({
-    title: product?.title || "",
-    description: product?.description || "",
-    price: product?.price || 0,
-    category: product?.category || "Merch",
-    stock: product?.stock || 0,
-    isActive: product?.isActive ?? true,
-  });
+export function EventForm({ event, onClose }: EventFormProps) {
+  const [title, setTitle] = useState(event?.title || "");
+  const [description, setDescription] = useState(event?.description || "");
+  const [date, setDate] = useState(event?.date || "");
+  const [time, setTime] = useState(event?.time || "");
+  const [location, setLocation] = useState(event?.location || "");
+  const [capacity, setCapacity] = useState(event?.capacity ?? 0);
+  const [ticketPrice, setTicketPrice] = useState(event?.ticketPrice ?? 0);
+  const [status, setStatus] = useState<"UPCOMING" | "PAST" | "CANCELLED">(event?.status || "UPCOMING");
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    getImageUrl(product?.image || null)
-  );
+  const [imagePreview, setImagePreview] = useState<string | null>(event?.image || null);
   const [error, setError] = useState("");
 
-  const createProduct = useCreateProduct();
-  const updateProduct = useUpdateProduct();
+  const createEvent = useCreateEvent();
+  const updateEvent = useUpdateEvent();
 
-  // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -38,29 +34,6 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-
-    try {
-      if (product) {
-        await updateProduct.mutateAsync({
-          id: product.id,
-          data: { ...formData, image: imageFile || undefined },
-        });
-      } else {
-        if (!imageFile) {
-          setError("Image is required");
-          return;
-        }
-        await createProduct.mutateAsync({ ...formData, image: imageFile });
-      }
-      onClose();
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to save product");
-    }
-  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,14 +47,48 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     }
   };
 
-  const isLoading = createProduct.isPending || updateProduct.isPending;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const data: any = {
+        title,
+        description,
+        date,
+        time,
+        location,
+        capacity,
+        ticketPrice,
+        status,
+      };
+      if (imageFile) {
+        data.image = imageFile;
+      }
+
+      if (event) {
+        await updateEvent.mutateAsync({ id: event.id, data });
+      } else {
+        if (!imageFile) {
+          setError("Image is required");
+          return;
+        }
+        await createEvent.mutateAsync(data);
+      }
+      onClose();
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Failed to save event");
+    }
+  };
+
+  const isLoading = createEvent.isPending || updateEvent.isPending;
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-background border border-border rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">
-            {product ? "Edit Product" : "Add New Product"}
+            {event ? "Edit Event" : "Add New Event"}
           </h2>
           <Button variant="ghost" size="icon" onClick={onClose}>
             <X className="w-5 h-5" />
@@ -99,8 +106,8 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
             <label className="block text-sm font-medium mb-2">Title *</label>
             <input
               type="text"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
               required
               className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
             />
@@ -109,10 +116,8 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
           <div>
             <label className="block text-sm font-medium mb-2">Description *</label>
             <textarea
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               required
               rows={4}
               className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
@@ -121,29 +126,21 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Price *</label>
+              <label className="block text-sm font-medium mb-2">Date *</label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.price}
-                onChange={(e) =>
-                  setFormData({ ...formData, price: parseFloat(e.target.value) })
-                }
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 required
                 className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
               />
             </div>
-
             <div>
-              <label className="block text-sm font-medium mb-2">Stock *</label>
+              <label className="block text-sm font-medium mb-2">Time *</label>
               <input
-                type="number"
-                min="0"
-                value={formData.stock}
-                onChange={(e) =>
-                  setFormData({ ...formData, stock: parseInt(e.target.value) })
-                }
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
                 required
                 className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
               />
@@ -151,33 +148,63 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Category *</label>
-            <select
-              value={formData.category}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  category: e.target.value as "Books" | "Music" | "Merch",
-                })
-              }
+            <label className="block text-sm font-medium mb-2">Location *</label>
+            <input
+              type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               required
+              placeholder="Event venue or online link"
+              className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Capacity</label>
+              <input
+                type="number"
+                min="0"
+                value={capacity}
+                onChange={(e) => setCapacity(parseInt(e.target.value) || 0)}
+                className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Ticket Price</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                value={ticketPrice}
+                onChange={(e) => setTicketPrice(parseFloat(e.target.value) || 0)}
+                className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Status</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as "UPCOMING" | "PAST" | "CANCELLED")}
               className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
             >
-              <option value="Books">Books</option>
-              <option value="Music">Music</option>
-              <option value="Merch">Merch</option>
+              <option value="UPCOMING">Upcoming</option>
+              <option value="PAST">Past</option>
+              <option value="CANCELLED">Cancelled</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Image {!product && "*"}
+              Image {!event && "*"}
             </label>
             <input
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              required={!product}
+              required={!event}
               className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
             />
             {imagePreview && (
@@ -211,7 +238,7 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
                   Saving...
                 </>
               ) : (
-                product ? "Update Product" : "Create Product"
+                event ? "Update Event" : "Create Event"
               )}
             </Button>
           </div>
@@ -220,11 +247,3 @@ export function ProductForm({ product, onClose }: ProductFormProps) {
     </div>
   );
 }
-
-
-
-
-
-
-
-

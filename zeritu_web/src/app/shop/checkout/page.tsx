@@ -17,6 +17,9 @@ interface CheckoutFormData {
   shippingEmail: string;
   shippingPhone: string;
   shippingAddress: string;
+  shippingCity: string;
+  shippingRegion: string;
+  shippingCountry: string;
 }
 
 export default function CheckoutPage() {
@@ -44,6 +47,9 @@ export default function CheckoutPage() {
       shippingEmail: user?.email || "",
       shippingPhone: "",
       shippingAddress: "",
+      shippingCity: "",
+      shippingRegion: "",
+      shippingCountry: "Ethiopia",
     };
   });
   const [error, setError] = useState("");
@@ -243,10 +249,11 @@ export default function CheckoutPage() {
 
               <form onSubmit={handleSubmit} className="space-y-4 bg-secondary/5 rounded-2xl p-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label htmlFor="shippingName" className="block text-sm font-medium mb-2">
                     Full Name *
                   </label>
                   <input
+                    id="shippingName"
                     type="text"
                     value={formData.shippingName}
                     onChange={(e) =>
@@ -258,10 +265,11 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label htmlFor="shippingEmail" className="block text-sm font-medium mb-2">
                     Email *
                   </label>
                   <input
+                    id="shippingEmail"
                     type="email"
                     value={formData.shippingEmail}
                     onChange={(e) =>
@@ -273,10 +281,11 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">
+                  <label htmlFor="shippingPhone" className="block text-sm font-medium mb-2">
                     Phone Number *
                   </label>
                   <input
+                    id="shippingPhone"
                     type="tel"
                     value={formData.shippingPhone}
                     onChange={(e) =>
@@ -289,16 +298,65 @@ export default function CheckoutPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Shipping Address *
+                  <label htmlFor="shippingAddress" className="block text-sm font-medium mb-2">
+                    Street Address *
                   </label>
                   <textarea
+                    id="shippingAddress"
                     value={formData.shippingAddress}
                     onChange={(e) =>
                       setFormData({ ...formData, shippingAddress: e.target.value })
                     }
                     required
-                    rows={3}
+                    rows={2}
+                    className="w-full px-4 py-2 rounded-lg border bg-background focus:ring-2 focus:ring-primary outline-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="shippingCity" className="block text-sm font-medium mb-2">
+                      City *
+                    </label>
+                    <input
+                      id="shippingCity"
+                      type="text"
+                      value={formData.shippingCity}
+                      onChange={(e) =>
+                        setFormData({ ...formData, shippingCity: e.target.value })
+                      }
+                      required
+                      className="w-full px-4 py-2 rounded-lg border bg-background focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="shippingRegion" className="block text-sm font-medium mb-2">
+                      Region / State
+                    </label>
+                    <input
+                      id="shippingRegion"
+                      type="text"
+                      value={formData.shippingRegion}
+                      onChange={(e) =>
+                        setFormData({ ...formData, shippingRegion: e.target.value })
+                      }
+                      className="w-full px-4 py-2 rounded-lg border bg-background focus:ring-2 focus:ring-primary outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="shippingCountry" className="block text-sm font-medium mb-2">
+                    Country *
+                  </label>
+                  <input
+                    id="shippingCountry"
+                    type="text"
+                    value={formData.shippingCountry}
+                    onChange={(e) =>
+                      setFormData({ ...formData, shippingCountry: e.target.value })
+                    }
+                    required
                     className="w-full px-4 py-2 rounded-lg border bg-background focus:ring-2 focus:ring-primary outline-none"
                   />
                 </div>

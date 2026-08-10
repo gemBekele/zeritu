@@ -93,11 +93,46 @@ export const requireAdmin = async (
   res: Response,
   next: NextFunction
 ) => {
-  await requireAuth(req, res, () => {
-    if (req.user?.role !== 'ADMIN') {
+  // Authenticate first, then check admin role
+  let authError = false;
+  const originalJson = res.json.bind(res);
+  
+  try {
+    // Manually authenticate - if it fails, send 401
+    const sessionId = req.cookies?.session;
+    if (!sessionId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const session = sessions.get(sessionId);
+    if (!session) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.userId },
+      select: { id: true, email: true, name: true, role: true },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (user.role !== 'ADMIN') {
       return res.status(403).json({ error: 'Forbidden: Admin access required' });
     }
+
+    req.user = {
+      id: user.id,
+      email: user.email,
+      name: user.name || undefined,
+      role: user.role,
+    };
+
     next();
-  });
+  } catch (error) {
+    console.error('Auth error:', error);
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 };
 

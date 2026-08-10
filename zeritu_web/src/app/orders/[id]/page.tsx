@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
 import { useOrder } from "@/hooks/use-orders";
@@ -18,6 +19,19 @@ export default function OrderDetailPage() {
   const { data: order, isLoading, error } = useOrder(orderId);
   const { user, isAdmin, isAuthenticated } = useAuth();
 
+  // Check access and redirect if needed
+  useEffect(() => {
+    if (error || !order || isLoading) return;
+    if (isAdmin) return;
+    if (order.userId !== user?.id) {
+      if (!isAuthenticated) {
+        router.push(`/login?redirect=/orders/${orderId}`);
+      } else {
+        router.push("/");
+      }
+    }
+  }, [order, user, isAdmin, isAuthenticated, isLoading, error, router, orderId]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
@@ -28,18 +42,6 @@ export default function OrderDetailPage() {
 
   if (error || !order) {
     return notFound();
-  }
-
-  // Check if user has access to this order (allow access if authenticated and owns order, or is admin)
-  if (!isAdmin && order.userId !== user?.id) {
-    // If not authenticated, redirect to login
-    if (!isAuthenticated) {
-      router.push(`/login?redirect=/orders/${orderId}`);
-      return null;
-    }
-    // If authenticated but doesn't own order, redirect home
-    router.push("/");
-    return null;
   }
 
   const getStatusIcon = (status: string) => {
@@ -188,6 +190,9 @@ export default function OrderDetailPage() {
                 <p className="text-muted-foreground">{order.shippingEmail}</p>
                 <p className="text-muted-foreground">{order.shippingPhone}</p>
                 <p className="text-muted-foreground">{order.shippingAddress}</p>
+                <p className="text-muted-foreground">
+                  {order.shippingCity}{order.shippingRegion ? `, ${order.shippingRegion}` : ""}, {order.shippingCountry}
+                </p>
               </div>
             </div>
 

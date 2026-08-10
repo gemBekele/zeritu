@@ -2,10 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight, ShoppingBag } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 interface BookSectionProps {
   variant?: "dark" | "light";
@@ -30,114 +30,125 @@ export function BookSection({
 
   return (
     <section
-      className={cn(
-        "relative overflow-hidden min-h-[600px] lg:min-h-[700px]",
-        isDark ? "bg-secondary text-secondary-foreground" : "bg-[#f5f5f0] text-foreground"
-      )}
+      className={
+        isDark
+          ? "relative overflow-hidden min-h-[600px] lg:min-h-[700px] bg-black text-foreground"
+          : "relative overflow-hidden min-h-[600px] lg:min-h-[700px] bg-cream text-background"
+      }
     >
-      {/* Background Image - positioned on the right */}
-      <div className={cn(
-        "absolute inset-0",
-        reverse ? "scale-x-[-1]" : ""
-      )}>
-        <div className="absolute right-[-300] top-0 h-full w-full lg:w-[100%]">
+      {/* Background Image — covers right portion */}
+      <div className={reverse ? "absolute inset-0 scale-x-[-1]" : "absolute inset-0"}>
+        <div className="absolute right-0 top-0 h-full w-full lg:w-[68%] lg:ml-auto">
           <Image
             src={encodeURI(imageSrc)}
             alt="Book Cover"
             fill
-            sizes="(max-width: 1024px) 100vw, 85vw"
+            sizes="(max-width: 1024px) 100vw, 75vw"
             className="object-cover object-center"
             priority
             unoptimized
           />
         </div>
-        
-        {/* Gradient overlays for blending */}
-        <div className={cn(
-          "absolute inset-0 z-10",
-          isDark 
-            ? "bg-gradient-to-r from-secondary via-secondary/95 via-30% to-secondary/10" 
-            : "bg-gradient-to-r from-[#f5f5f0] via-[#f5f5f0]/95 via-20% to-[#f5f5f0]/1"
-        )} />
-        
-        {/* Additional vertical gradient for depth */}
-        <div className={cn(
-          "absolute inset-0 z-10",
-          isDark 
-            ? "bg-gradient-to-t from-secondary/80 via-transparent to-secondary/40" 
-            : "bg-gradient-to-t from-[#f5f5f0]/80 via-transparent to-[#f5f5f0]/40"
-        )} />
-        
-        {/* Texture/Noise overlay (optional) */}
-        <div className="absolute inset-0 z-10 opacity-[0.03] bg-[url('/noise.png')] pointer-events-none" />
       </div>
 
       {/* Content */}
       <Container className="relative z-20 py-24 lg:py-32">
-        <div className={cn(
-          "max-w-xl",
-          reverse ? "ml-auto text-right" : ""
-        )}>
-          <div className={cn("space-y-6", reverse && "flex flex-col items-end")}>
-            <span className="text-primary font-light tracking-widest uppercase text-md inline-block">
+        <div className={reverse ? "max-w-xl ml-auto text-right" : "max-w-xl"}>
+          <div className={reverse ? "space-y-6 flex flex-col items-end" : "space-y-6"}>
+            <motion.span
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="section-subtitle text-base inline-block"
+            >
               New Book
-            </span>
-            
+            </motion.span>
+
             {titleImageSrc ? (
-              <div className={cn(
-                "relative h-32 w-full max-w-md",
-                reverse && "scale-x-[-1]"
-              )}>
-                <Image 
-                  src={encodeURI(titleImageSrc)} 
-                  alt={title} 
-                  fill 
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className={
+                  reverse
+                    ? "relative h-32 w-full max-w-md scale-x-[-1]"
+                    : "relative h-32 w-full max-w-md"
+                }
+              >
+                <Image
+                  src={encodeURI(titleImageSrc)}
+                  alt={title}
+                  fill
                   sizes="(max-width: 768px) 100vw, 400px"
-                  className={cn(
-                    "object-contain",
-                    reverse ? "object-right" : "object-left"
-                  )}
+                  className={
+                    reverse
+                      ? "object-contain object-right"
+                      : "object-contain object-left"
+                  }
                   unoptimized
                 />
-              </div>
+              </motion.div>
             ) : (
-              <h2 className="text-4xl md:text-6xl font-black leading-tight">
-                {title} <span className="text-primary">to</span> {subtitle}
-              </h2>
+              <motion.h2
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-4xl md:text-6xl font-sans font-bold leading-tight"
+              >
+                {title}{" "}
+                <span className="text-primary italic">to</span> {subtitle}
+              </motion.h2>
             )}
-            
-            <p className={cn(
-              "text-lg leading-relaxed max-w-lg",
-              isDark ? "text-gray-400" : "text-muted-foreground"
-            )}>
-              {description}
-            </p>
 
-            <div className={cn("flex gap-4 pt-4", reverse && "flex-row-reverse")}>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 }}
+              className={
+                isDark
+                  ? "text-lg leading-relaxed max-w-lg text-foreground/50 font-light"
+                  : "text-lg leading-relaxed max-w-lg text-background/60 font-light"
+              }
+            >
+              {description}
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className={reverse ? "flex gap-4 pt-4 flex-row-reverse" : "flex gap-4 pt-4"}
+            >
               <Link href="/shop">
-                <Button 
-                  size="lg" 
-                  className={cn(
-                    "rounded-full px-8", 
-                    isDark ? "bg-primary text-black hover:bg-white" : "bg-secondary text-white hover:bg-secondary/90"
-                  )}
+                <Button
+                  size="lg"
+                  className={
+                    isDark
+                      ? "rounded-full px-8 bg-primary text-primary-foreground hover:bg-primary-light transition-all duration-500 uppercase text-xs tracking-wider"
+                      : "rounded-full px-8 bg-background text-foreground hover:bg-background/90 transition-all duration-500 uppercase text-xs tracking-wider"
+                  }
                 >
                   Buy Now
                 </Button>
               </Link>
-              <Link href="/books">
-                <Button 
-                  size="icon" 
-                  variant="outline" 
-                  className={cn(
-                    "rounded-full w-12 h-12", 
-                    isDark ? "border-white/20 hover:bg-white/10 text-white" : "border-black/20"
-                  )}
+              <Link href="/shop">
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className={
+                    isDark
+                      ? "rounded-full w-12 h-12 border-foreground/20 hover:bg-foreground/10 text-foreground"
+                      : "rounded-full w-12 h-12 border-background/20 hover:bg-background/10 text-background"
+                  }
                 >
                   <ArrowUpRight className="w-5 h-5" />
                 </Button>
               </Link>
-            </div>
+            </motion.div>
           </div>
         </div>
       </Container>

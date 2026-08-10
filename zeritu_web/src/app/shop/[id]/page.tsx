@@ -17,6 +17,7 @@ export default function ProductDetailsPage() {
   const { data: product, isLoading, error } = useProduct(productId);
   const { addItem, items, updateQuantity } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [addError, setAddError] = useState("");
 
   if (isLoading) {
     return (
@@ -33,19 +34,23 @@ export default function ProductDetailsPage() {
   const cartItem = items.find(item => item.id === product.id);
   const currentQuantity = cartItem?.quantity || 0;
 
-  const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addItem({
+  const handleAddToCart = async () => {
+    setAddError("");
+    try {
+      await addItem({
         id: product.id,
         title: product.title,
         price: product.price,
         image: product.image,
-      });
+      }, quantity);
+    } catch (err: any) {
+      setAddError(err.message || "Failed to add item to cart");
     }
   };
 
   const handleUpdateQuantity = (newQuantity: number) => {
     if (newQuantity < 1) return;
+    if (product.stock && newQuantity > product.stock) return;
     setQuantity(newQuantity);
   };
 
@@ -95,6 +100,7 @@ export default function ProductDetailsPage() {
                     size="icon"
                     className="h-8 w-8 rounded-full"
                     onClick={() => handleUpdateQuantity(Math.max(1, quantity - 1))}
+                    aria-label="Decrease quantity"
                   >
                     <Minus className="w-4 h-4" />
                   </Button>
@@ -104,11 +110,17 @@ export default function ProductDetailsPage() {
                     size="icon"
                     className="h-8 w-8 rounded-full"
                     onClick={() => handleUpdateQuantity(quantity + 1)}
+                    aria-label="Increase quantity"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
+              {addError && (
+                <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm">
+                  {addError}
+                </div>
+              )}
               <Button size="lg" className="w-full md:w-auto px-12 py-6 text-lg rounded-full gap-3" onClick={handleAddToCart}>
                 <ShoppingBag className="w-5 h-5" />
                 Add to Cart {quantity > 1 && `(${quantity})`}

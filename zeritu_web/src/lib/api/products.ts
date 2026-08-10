@@ -39,6 +39,7 @@ export const productsApi = {
     search?: string;
     page?: number;
     limit?: number;
+    includeInactive?: string;
   }): Promise<ProductsResponse> => {
     const response = await apiClient.get<ProductsResponse>('/api/products', { params });
     return response.data;

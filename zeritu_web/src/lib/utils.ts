@@ -20,7 +20,7 @@ export function getImageUrl(imagePath: string | null | undefined): string {
   
   // Ensure path starts with /
   const normalizedPath = imagePath.startsWith('/') ? imagePath : `/${imagePath}`;
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const apiUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001').replace(/\/+$/, '');
   
   // Remove duplicate /uploads if present
   const cleanPath = normalizedPath.replace(/^\/uploads\/uploads/, '/uploads');

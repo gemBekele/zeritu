@@ -259,7 +259,7 @@ module.exports = {
       interpreter: 'none',
       env: {
         NODE_ENV: 'production',
-        PORT: 3001
+        PORT: 3006
       },
       error_file: '/var/www/zeritu/logs/backend-error.log',
       out_file: '/var/www/zeritu/logs/backend-out.log',
@@ -278,7 +278,7 @@ module.exports = {
       interpreter: 'none',
       env: {
         NODE_ENV: 'production',
-        PORT: 3000
+        PORT: 3007
       },
       error_file: '/var/www/zeritu/logs/frontend-error.log',
       out_file: '/var/www/zeritu/logs/frontend-out.log',

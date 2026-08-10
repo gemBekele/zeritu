@@ -15,14 +15,16 @@ const productSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
-// Get all products (public)
+// Get all products (public, admin can see inactive)
 router.get('/', async (req, res) => {
   try {
-    const { category, search, page = '1', limit = '20' } = req.query;
+    const { category, search, page = '1', limit = '20', includeInactive } = req.query;
     
-    const where: any = {
-      isActive: true,
-    };
+    const where: any = {};
+    
+    if (includeInactive !== 'true') {
+      where.isActive = true;
+    }
 
     if (category && typeof category === 'string') {
       where.category = category;
@@ -35,8 +37,9 @@ router.get('/', async (req, res) => {
       ];
     }
 
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-    const take = parseInt(limit as string);
+    const pageNum = Math.max(1, parseInt(page as string) || 1);
+    const take = Math.max(1, Math.min(100, parseInt(limit as string) || 20));
+    const skip = (pageNum - 1) * take;
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
@@ -51,7 +54,7 @@ router.get('/', async (req, res) => {
     res.json({
       products,
       pagination: {
-        page: parseInt(page as string),
+        page: pageNum,
         limit: take,
         total,
         pages: Math.ceil(total / take),
@@ -120,7 +123,13 @@ router.post('/', requireAdmin, upload.single('image'), async (req: AuthRequest, 
 // Update product (admin only)
 router.put('/:id', requireAdmin, upload.single('image'), async (req: AuthRequest, res) => {
   try {
-    const body = productSchema.partial().parse(req.body);
+    // Parse form data - convert strings to proper types
+    const formData = { ...req.body };
+    if (formData.price !== undefined) formData.price = parseFloat(formData.price);
+    if (formData.stock !== undefined) formData.stock = parseInt(formData.stock);
+    if (formData.isActive !== undefined) formData.isActive = formData.isActive === 'true' || formData.isActive === true;
+    
+    const body = productSchema.partial().parse(formData);
     
     const updateData: any = { ...body };
     

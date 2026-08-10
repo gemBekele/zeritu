@@ -8,6 +8,7 @@ export const useProducts = (params?: {
   search?: string;
   page?: number;
   limit?: number;
+  includeInactive?: string;
 }) => {
   return useQuery<ProductsResponse>({
     queryKey: ['products', params],

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth, requireAdmin, AuthRequest } from '../middleware/auth';
 import prisma from '../config/database';
 import { z } from 'zod';
+import crypto from 'crypto';
 import { createChapaPayment, verifyChapaPayment } from '../services/chapa';
 
 const router = Router();
@@ -11,6 +12,9 @@ const orderSchema = z.object({
   shippingEmail: z.string().email(),
   shippingPhone: z.string().min(1),
   shippingAddress: z.string().min(1),
+  shippingCity: z.string().min(1, "City is required"),
+  shippingRegion: z.string().optional().default(""),
+  shippingCountry: z.string().optional().default("Ethiopia"),
 });
 
 // Get user's orders
@@ -99,35 +103,60 @@ router.post('/', requireAuth, async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'Cart is empty' });
     }
 
+    // Validate stock availability
+    for (const item of cartItems) {
+      if (item.product.stock < item.quantity) {
+        return res.status(400).json({
+          error: `Insufficient stock for "${item.product.title}". Available: ${item.product.stock}, requested: ${item.quantity}`,
+        });
+      }
+    }
+
     // Calculate total
     const total = cartItems.reduce((sum, item) => {
       return sum + item.product.price * item.quantity;
     }, 0);
 
-    // Create order
-    const order = await prisma.order.create({
-      data: {
-        userId: req.user!.id,
-        total,
-        shippingName: shipping.shippingName,
-        shippingEmail: shipping.shippingEmail,
-        shippingPhone: shipping.shippingPhone,
-        shippingAddress: shipping.shippingAddress,
-        items: {
-          create: cartItems.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.product.price,
-          })),
-        },
-      },
-      include: {
-        items: {
-          include: {
-            product: true,
+    // Create order with stock deduction in a transaction
+    const order = await prisma.$transaction(async (tx) => {
+      // Deduct stock for each item
+      for (const item of cartItems) {
+        const updated = await tx.product.update({
+          where: { id: item.productId },
+          data: { stock: { decrement: item.quantity } },
+        });
+        if (updated.stock < 0) {
+          throw new Error(`Insufficient stock for "${item.product.title}"`);
+        }
+      }
+
+      return tx.order.create({
+        data: {
+          userId: req.user!.id,
+          total,
+          shippingName: shipping.shippingName,
+          shippingEmail: shipping.shippingEmail,
+          shippingPhone: shipping.shippingPhone,
+          shippingAddress: shipping.shippingAddress,
+          shippingCity: shipping.shippingCity,
+          shippingRegion: shipping.shippingRegion,
+          shippingCountry: shipping.shippingCountry,
+          items: {
+            create: cartItems.map((item) => ({
+              productId: item.productId,
+              quantity: item.quantity,
+              price: item.product.price,
+            })),
           },
         },
-      },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
     });
 
     // Create Chapa payment
@@ -313,6 +342,24 @@ router.post('/webhook', async (req, res) => {
     console.log('Chapa webhook received:', JSON.stringify(req.body, null, 2));
     console.log('Chapa webhook headers:', JSON.stringify(req.headers, null, 2));
     
+    // Verify webhook signature if secret is configured
+    const webhookSecret = process.env.CHAPA_WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const signature = req.headers['x-chapa-signature'] as string;
+      if (!signature) {
+        console.error('Missing Chapa webhook signature');
+        return res.status(401).json({ error: 'Missing signature' });
+      }
+      const expectedSig = crypto
+        .createHmac('sha256', webhookSecret)
+        .update(JSON.stringify(req.body))
+        .digest('hex');
+      if (signature !== expectedSig) {
+        console.error('Invalid Chapa webhook signature');
+        return res.status(401).json({ error: 'Invalid signature' });
+      }
+    }
+    
     // Chapa webhook can send data in different formats
     // Check for both direct status and nested data.status
     const tx_ref = req.body.tx_ref || req.body.data?.tx_ref || req.body.txRef;
@@ -372,6 +419,7 @@ router.post('/webhook', async (req, res) => {
         where: { id: order.id },
         data: {
           paymentStatus: 'FAILED',
+          status: 'CANCELLED',
         },
       });
       return res.json({ message: 'Webhook processed', orderId: order.id, status: 'FAILED' });

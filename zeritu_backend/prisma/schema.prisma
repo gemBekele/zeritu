@@ -25,6 +25,9 @@ model User {
   orders        Order[]
   cartItems     CartItem[]
   articles      Article[]
+  articleComments ArticleComment[]
+  articleLikes  ArticleLike[]
+  eventRegistrations EventRegistration[]
   sessions      Session[]
   accounts      Account[]
   verifications Verification[]
@@ -110,10 +113,36 @@ model Article {
   image       String
   published   Boolean  @default(false)
   publishedAt DateTime?
+  viewCount   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   authorId    String?
   author      User?    @relation(fields: [authorId], references: [id])
+  comments    ArticleComment[]
+  likes       ArticleLike[]
+}
+
+model ArticleComment {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name      String?
+  email     String?
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model ArticleLike {
+  id        String   @id @default(cuid())
+  articleId String
+  article   Article  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([articleId, userId])
 }
 
 model Event {
@@ -124,9 +153,33 @@ model Event {
   time        String
   location    String
   image       String
+  capacity    Int      @default(0)
+  ticketPrice Float    @default(0)
   status      EventStatus @default(UPCOMING)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  registrations EventRegistration[]
+}
+
+model EventRegistration {
+  id         String   @id @default(cuid())
+  eventId    String
+  event      Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name       String
+  email      String
+  phone      String?
+  quantity   Int      @default(1)
+  status     RegistrationStatus @default(CONFIRMED)
+  ticketRef  String   @unique
+  createdAt  DateTime @default(now())
+}
+
+enum RegistrationStatus {
+  CONFIRMED
+  CANCELLED
+  WAITING
 }
 
 enum EventStatus {
@@ -143,10 +196,13 @@ model Order {
   status        OrderStatus @default(PENDING)
   paymentStatus PaymentStatus @default(PENDING)
   chapaTxRef    String?     @unique
-  shippingName  String
-  shippingEmail String
-  shippingPhone String
-  shippingAddress String   @db.Text
+  shippingName     String
+  shippingEmail    String
+  shippingPhone    String
+  shippingAddress  String   @db.Text
+  shippingCity     String   @default("")
+  shippingRegion   String   @default("")
+  shippingCountry  String   @default("Ethiopia")
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   

@@ -28,6 +28,9 @@ export interface Order {
   shippingEmail: string;
   shippingPhone: string;
   shippingAddress: string;
+  shippingCity: string;
+  shippingRegion: string;
+  shippingCountry: string;
   createdAt: string;
   updatedAt: string;
   items: OrderItem[];
@@ -43,6 +46,9 @@ export interface CreateOrderData {
   shippingEmail: string;
   shippingPhone: string;
   shippingAddress: string;
+  shippingCity: string;
+  shippingRegion?: string;
+  shippingCountry?: string;
 }
 
 export interface CreateOrderResponse {

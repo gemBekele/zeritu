@@ -14,10 +14,10 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (item: Omit<CartItem, "quantity">) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  clearCart: () => void;
+  addItem: (item: Omit<CartItem, "quantity">, quantity?: number) => Promise<void>;
+  removeItem: (id: string) => Promise<void>;
+  updateQuantity: (id: string, quantity: number) => Promise<void>;
+  clearCart: () => Promise<void>;
   totalItems: number;
   totalPrice: number;
   isLoading: boolean;
@@ -111,17 +111,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       }))
     : localItems;
 
-  const addItem = async (newItem: Omit<CartItem, "quantity">) => {
+  const addItem = async (newItem: Omit<CartItem, "quantity">, qty?: number): Promise<void> => {
+    const quantity = qty ?? 1;
     if (isAuthenticated) {
-      // Use backend API
-      try {
-        await addToCartMutation.mutateAsync({
-          productId: newItem.id,
-          quantity: 1,
-        });
-      } catch (error) {
-        console.error('Failed to add item to cart:', error);
-      }
+      await addToCartMutation.mutateAsync({
+        productId: newItem.id,
+        quantity,
+      });
     } else {
       // Use local storage
       setLocalItems((prev) => {
@@ -129,11 +125,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         if (existing) {
           return prev.map((item) =>
             item.id === newItem.id
-              ? { ...item, quantity: item.quantity + 1 }
+              ? { ...item, quantity: item.quantity + quantity }
               : item
           );
         }
-        return [...prev, { ...newItem, quantity: 1 }];
+        return [...prev, { ...newItem, quantity }];
       });
     }
   };

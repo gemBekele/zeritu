@@ -8,9 +8,25 @@ export interface Event {
   time: string;
   location: string;
   image: string;
+  capacity: number;
+  ticketPrice: number;
   status: 'UPCOMING' | 'PAST' | 'CANCELLED';
   createdAt: string;
   updatedAt: string;
+  _count?: { registrations: number };
+}
+
+export interface EventRegistration {
+  id: string;
+  eventId: string;
+  userId?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  quantity: number;
+  status: 'CONFIRMED' | 'CANCELLED' | 'WAITING';
+  ticketRef: string;
+  createdAt: string;
 }
 
 export interface EventsResponse {
@@ -29,6 +45,8 @@ export interface CreateEventData {
   date: string;
   time: string;
   location: string;
+  capacity?: number;
+  ticketPrice?: number;
   status?: 'UPCOMING' | 'PAST' | 'CANCELLED';
   image?: File;
 }
@@ -92,6 +110,20 @@ export const eventsApi = {
 
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/events/${id}`);
+  },
+
+  getRegistrations: async (id: string): Promise<EventRegistration[]> => {
+    const response = await apiClient.get<EventRegistration[]>(`/api/events/${id}/registrations`);
+    return response.data;
+  },
+
+  register: async (id: string, data: { name: string; email: string; phone?: string; quantity?: number }): Promise<EventRegistration> => {
+    const response = await apiClient.post<EventRegistration>(`/api/events/${id}/register`, data);
+    return response.data;
+  },
+
+  cancelRegistration: async (eventId: string, regId: string): Promise<void> => {
+    await apiClient.delete(`/api/events/${eventId}/registrations/${regId}`);
   },
 };
 

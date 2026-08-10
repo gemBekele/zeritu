@@ -1,4 +1,4 @@
-import { apiClient, createFormData } from '../api-client';
+import { apiClient } from '../api-client';
 
 export interface Article {
   id: string;
@@ -8,12 +8,32 @@ export interface Article {
   image: string;
   published: boolean;
   publishedAt?: string;
+  viewCount: number;
   createdAt: string;
   updatedAt: string;
   author?: {
     id: string;
     name?: string;
     email: string;
+  };
+  _count?: {
+    comments: number;
+    likes: number;
+  };
+}
+
+export interface ArticleComment {
+  id: string;
+  articleId: string;
+  userId?: string;
+  name?: string;
+  email?: string;
+  content: string;
+  createdAt: string;
+  user?: {
+    id: string;
+    name?: string;
+    image?: string;
   };
 }
 
@@ -61,6 +81,8 @@ export const articlesApi = {
     
     if (data.image) {
       formData.append('image', data.image);
+    } else if ((data as any).imageUrl) {
+      formData.append('imageUrl', (data as any).imageUrl);
     }
 
     const response = await apiClient.post<Article>('/api/articles', formData, {
@@ -81,6 +103,8 @@ export const articlesApi = {
     
     if (data.image) {
       formData.append('image', data.image);
+    } else if ((data as any).imageUrl) {
+      formData.append('imageUrl', (data as any).imageUrl);
     }
 
     const response = await apiClient.put<Article>(`/api/articles/${id}`, formData, {
@@ -93,6 +117,39 @@ export const articlesApi = {
 
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/api/articles/${id}`);
+  },
+
+  incrementView: async (id: string): Promise<void> => {
+    await apiClient.post(`/api/articles/${id}/view`);
+  },
+
+  getComments: async (id: string): Promise<ArticleComment[]> => {
+    const response = await apiClient.get<ArticleComment[]>(`/api/articles/${id}/comments`);
+    return response.data;
+  },
+
+  addComment: async (id: string, data: { content: string; name?: string; email?: string }): Promise<ArticleComment> => {
+    const response = await apiClient.post<ArticleComment>(`/api/articles/${id}/comments`, data);
+    return response.data;
+  },
+
+  deleteComment: async (articleId: string, commentId: string): Promise<void> => {
+    await apiClient.delete(`/api/articles/${articleId}/comments/${commentId}`);
+  },
+
+  getLikeStatus: async (id: string): Promise<{ liked: boolean; count: number }> => {
+    const response = await apiClient.get(`/api/articles/${id}/like/status`);
+    return response.data;
+  },
+
+  likeArticle: async (id: string): Promise<{ liked: boolean; count: number }> => {
+    const response = await apiClient.post(`/api/articles/${id}/like`);
+    return { liked: true, count: response.data.count };
+  },
+
+  unlikeArticle: async (id: string): Promise<{ liked: boolean; count: number }> => {
+    const response = await apiClient.delete(`/api/articles/${id}/like`);
+    return { liked: false, count: response.data.count };
   },
 };
 

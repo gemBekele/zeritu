@@ -20,7 +20,7 @@ import ordersRouter from './routes/orders';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Middleware
 // Allow multiple origins for development
@@ -51,8 +51,8 @@ app.use(cors({
 }));
 
 app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve uploaded files
 const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');

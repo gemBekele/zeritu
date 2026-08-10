@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Clock } from "lucide-react";
+import { Calendar, MapPin, Clock, Ticket } from "lucide-react";
 import { useEvents } from "@/hooks/use-events";
 import { format } from "date-fns";
 import { getImageUrl } from "@/lib/utils";
@@ -20,7 +21,7 @@ export default function EventsPage() {
         <div className="space-y-16">
           {/* Header */}
           <div className="text-center space-y-4">
-            <h1 className="text-5xl md:text-7xl font-black text-secondary uppercase tracking-tighter">
+            <h1 className="text-5xl md:text-7xl font-black text-foreground uppercase tracking-tighter">
               Events
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -30,7 +31,7 @@ export default function EventsPage() {
 
           {/* Upcoming Events */}
           <section className="space-y-8">
-            <h2 className="text-3xl md:text-4xl font-black text-secondary uppercase tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-black text-foreground uppercase tracking-tight">
               Upcoming <span className="text-primary">Events</span>
             </h2>
             
@@ -41,9 +42,10 @@ export default function EventsPage() {
             ) : upcomingEvents.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {upcomingEvents.map((event) => (
-                  <div
+                  <Link
                     key={event.id}
-                    className="bg-background rounded-2xl overflow-hidden border border-border hover:shadow-xl transition-shadow group"
+                    href={`/events/${event.id}`}
+                    className="block bg-secondary rounded-2xl overflow-hidden border border-border hover:shadow-xl hover:shadow-black/40 transition-shadow group"
                   >
                     <div className="relative aspect-video overflow-hidden">
                       <Image
@@ -62,26 +64,32 @@ export default function EventsPage() {
                       </h3>
                       <div className="space-y-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="w-4 h-4 text-primary" />
                           <span>{format(new Date(event.date), 'MMMM d, yyyy')}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
+                          <Clock className="w-4 h-4 text-primary" />
                           <span>{event.time}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
+                          <MapPin className="w-4 h-4 text-primary" />
                           <span>{event.location}</span>
                         </div>
+                        {event.capacity > 0 && (
+                          <div className="flex items-center gap-2">
+                            <Ticket className="w-4 h-4 text-primary" />
+                            <span>{event.capacity} spots</span>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-3">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
                         {event.description}
                       </p>
-                      <Button className="w-full rounded-full bg-secondary text-white hover:bg-secondary/90">
-                        Learn More
+                      <Button className="w-full rounded-full bg-primary text-primary-foreground hover:bg-primary-light">
+                        Get Tickets
                       </Button>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (
@@ -93,7 +101,7 @@ export default function EventsPage() {
 
           {/* Past Events */}
           <section className="space-y-8">
-            <h2 className="text-3xl md:text-4xl font-black text-secondary uppercase tracking-tight">
+            <h2 className="text-3xl md:text-4xl font-black text-foreground uppercase tracking-tight">
               Past <span className="text-primary">Events</span>
             </h2>
             
@@ -104,9 +112,10 @@ export default function EventsPage() {
             ) : pastEvents.length > 0 ? (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {pastEvents.map((event) => (
-                  <div
+                  <Link
                     key={event.id}
-                    className="bg-background rounded-2xl overflow-hidden border border-border hover:shadow-xl transition-shadow group opacity-75"
+                    href={`/events/${event.id}`}
+                    className="block bg-secondary rounded-2xl overflow-hidden border border-border hover:shadow-xl hover:shadow-black/40 transition-shadow group opacity-75"
                   >
                     <div className="relative aspect-video overflow-hidden">
                       <Image
@@ -125,23 +134,23 @@ export default function EventsPage() {
                       </h3>
                       <div className="space-y-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4" />
+                          <Calendar className="w-4 h-4 text-primary" />
                           <span>{format(new Date(event.date), 'MMMM d, yyyy')}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
+                          <Clock className="w-4 h-4 text-primary" />
                           <span>{event.time}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4" />
+                          <MapPin className="w-4 h-4 text-primary" />
                           <span>{event.location}</span>
                         </div>
                       </div>
-                      <p className="text-sm text-muted-foreground line-clamp-3">
+                      <p className="text-sm text-muted-foreground line-clamp-2">
                         {event.description}
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (

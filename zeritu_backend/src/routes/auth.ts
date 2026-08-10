@@ -43,7 +43,13 @@ router.post('/sign-up', async (req: Request, res: Response) => {
       role: user.role,
     });
 
-    res.cookie('session', sessionId, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('session', sessionId, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     
     res.status(201).json({
       user: {
@@ -81,7 +87,13 @@ router.post('/sign-in', async (req: Request, res: Response) => {
       role: user.role,
     });
 
-    res.cookie('session', sessionId, { httpOnly: true, maxAge: 7 * 24 * 60 * 60 * 1000 });
+    const isProduction = process.env.NODE_ENV === 'production';
+    res.cookie('session', sessionId, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'strict' : 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
     
     res.json({
       user: {

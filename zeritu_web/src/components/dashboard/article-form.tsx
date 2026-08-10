@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useCreateArticle, useUpdateArticle } from "@/hooks/use-articles";
 import { Article, CreateArticleData } from "@/lib/api/articles";
-import { Loader2, X } from "lucide-react";
+import { RichTextEditor } from "@/components/dashboard/rich-text-editor";
+import { getImageUrl } from "@/lib/utils";
+import { Loader2, X, Upload, Link as LinkIcon } from "lucide-react";
 
 interface ArticleFormProps {
   article?: Article;
@@ -19,13 +21,23 @@ export function ArticleForm({ article, onClose }: ArticleFormProps) {
     published: article?.published || false,
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState(article?.image || "");
+  const [imageTab, setImageTab] = useState<"file" | "url">(article?.image && !article?.image.startsWith("blob:") ? "url" : "file");
   const [imagePreview, setImagePreview] = useState<string | null>(
-    article?.image || null
+    getImageUrl(article?.image || null)
   );
   const [error, setError] = useState("");
 
   const createArticle = useCreateArticle();
   const updateArticle = useUpdateArticle();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,21 +45,28 @@ export function ArticleForm({ article, onClose }: ArticleFormProps) {
 
     try {
       if (article) {
-        // For updates, only include image if a new file is selected
         const updateData: any = { ...formData };
         if (imageFile) {
           updateData.image = imageFile;
+        } else if (imageUrl && imageTab === "url") {
+          updateData.imageUrl = imageUrl;
         }
         await updateArticle.mutateAsync({
           id: article.id,
           data: updateData,
         });
       } else {
-        if (!imageFile) {
+        if (imageTab === "file" && !imageFile) {
           setError("Image is required");
           return;
         }
-        await createArticle.mutateAsync({ ...formData, image: imageFile });
+        const createData: any = { ...formData };
+        if (imageFile) {
+          createData.image = imageFile;
+        } else if (imageUrl) {
+          createData.imageUrl = imageUrl;
+        }
+        await createArticle.mutateAsync(createData);
       }
       onClose();
     } catch (err: any) {
@@ -70,9 +89,9 @@ export function ArticleForm({ article, onClose }: ArticleFormProps) {
   const isLoading = createArticle.isPending || updateArticle.isPending;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-background border border-border rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
+    <div className="fixed inset-0 bg-black/70 z-50 flex">
+      <div className="bg-background w-full h-full overflow-y-auto">
+        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-6 md:px-10 py-4 flex items-center justify-between">
           <h2 className="text-2xl font-bold">
             {article ? "Edit Article" : "Add New Article"}
           </h2>
@@ -81,13 +100,14 @@ export function ArticleForm({ article, onClose }: ArticleFormProps) {
           </Button>
         </div>
 
-        {error && (
-          <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm mb-4">
-            {error}
-          </div>
-        )}
+        <div className="px-6 md:px-10 py-8 max-w-4xl mx-auto">
+          {error && (
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded-lg text-sm mb-4">
+              {error}
+            </div>
+          )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium mb-2">Title *</label>
             <input
@@ -95,7 +115,8 @@ export function ArticleForm({ article, onClose }: ArticleFormProps) {
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               required
-              className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
+              placeholder="Article title"
+              className="w-full px-4 py-3 text-lg font-bold rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
             />
           </div>
 
@@ -103,25 +124,20 @@ export function ArticleForm({ article, onClose }: ArticleFormProps) {
             <label className="block text-sm font-medium mb-2">Excerpt *</label>
             <textarea
               value={formData.excerpt}
-              onChange={(e) =>
-                setFormData({ ...formData, excerpt: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
               required
-              rows={3}
+              rows={2}
+              placeholder="A short summary of the article..."
               className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium mb-2">Content *</label>
-            <textarea
-              value={formData.content}
-              onChange={(e) =>
-                setFormData({ ...formData, content: e.target.value })
-              }
-              required
-              rows={10}
-              className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none font-mono text-sm"
+            <RichTextEditor
+              content={formData.content}
+              onChange={(html) => setFormData({ ...formData, content: html })}
+              placeholder="Start writing your article..."
             />
           </div>
 
@@ -129,13 +145,48 @@ export function ArticleForm({ article, onClose }: ArticleFormProps) {
             <label className="block text-sm font-medium mb-2">
               Image {!article && "*"}
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              required={!article}
-              className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
-            />
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => setImageTab("file")}
+                className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${imageTab === "file" ? "bg-primary text-white" : "bg-secondary/5 text-muted-foreground hover:text-foreground"}`}
+              >
+                <Upload className="w-3.5 h-3.5 inline mr-1" />
+                Upload File
+              </button>
+              <button
+                type="button"
+                onClick={() => setImageTab("url")}
+                className={`px-3 py-1.5 text-xs rounded-lg font-medium transition-colors ${imageTab === "url" ? "bg-primary text-white" : "bg-secondary/5 text-muted-foreground hover:text-foreground"}`}
+              >
+                <LinkIcon className="w-3.5 h-3.5 inline mr-1" />
+                Image URL
+              </button>
+            </div>
+            {imageTab === "file" ? (
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                required={!article && !imageUrl}
+                className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
+              />
+            ) : (
+              <input
+                type="url"
+                value={imageUrl}
+                onChange={(e) => {
+                  setImageUrl(e.target.value);
+                  if (e.target.value) {
+                    setImagePreview(e.target.value);
+                  } else {
+                    setImagePreview(null);
+                  }
+                }}
+                placeholder="https://example.com/image.jpg"
+                className="w-full px-4 py-2 rounded-lg border bg-secondary/5 focus:ring-2 focus:ring-primary outline-none"
+              />
+            )}
             {imagePreview && (
               <div className="mt-4 relative w-32 h-32 rounded-lg overflow-hidden border">
                 <img
@@ -187,10 +238,8 @@ export function ArticleForm({ article, onClose }: ArticleFormProps) {
             </Button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );
 }
-
-
-
