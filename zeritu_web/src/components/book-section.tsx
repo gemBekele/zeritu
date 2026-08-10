@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Container } from "@/components/ui/container";
 import { Button } from "@/components/ui/button";
+import { encodeImageUrl } from "@/lib/utils";
 import { motion } from "framer-motion";
 
 interface BookSectionProps {
@@ -40,7 +41,7 @@ export function BookSection({
       <div className={reverse ? "absolute inset-0 scale-x-[-1]" : "absolute inset-0"}>
         <div className="absolute right-0 top-0 h-full w-full lg:w-[68%] lg:ml-auto">
           <Image
-            src={encodeURI(imageSrc)}
+            src={encodeImageUrl(imageSrc)}
             alt="Book Cover"
             fill
             sizes="(max-width: 1024px) 100vw, 75vw"
@@ -77,7 +78,7 @@ export function BookSection({
                 }
               >
                 <Image
-                  src={encodeURI(titleImageSrc)}
+                  src={encodeImageUrl(titleImageSrc)}
                   alt={title}
                   fill
                   sizes="(max-width: 768px) 100vw, 400px"

@@ -6,6 +6,14 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
+ * Encode a static asset path (spaces, @, etc.) for <img>/<Image> src.
+ * encodeURI leaves @ unencoded, which 404s on production `next start`.
+ */
+export function encodeImageUrl(path: string): string {
+  return encodeURI(path).replace(/@/g, "%40");
+}
+
+/**
  * Get the full image URL, handling both absolute URLs and relative paths
  */
 export function getImageUrl(imagePath: string | null | undefined): string {
