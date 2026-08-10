@@ -44,9 +44,10 @@ router.post('/sign-up', async (req: Request, res: Response) => {
     });
 
     const isProduction = process.env.NODE_ENV === 'production';
+    const secureCookie = process.env.COOKIE_SECURE === 'true';
     res.cookie('session', sessionId, {
       httpOnly: true,
-      secure: isProduction,
+      secure: secureCookie,
       sameSite: isProduction ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -88,9 +89,10 @@ router.post('/sign-in', async (req: Request, res: Response) => {
     });
 
     const isProduction = process.env.NODE_ENV === 'production';
+    const secureCookie = process.env.COOKIE_SECURE === 'true';
     res.cookie('session', sessionId, {
       httpOnly: true,
-      secure: isProduction,
+      secure: secureCookie,
       sameSite: isProduction ? 'strict' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
