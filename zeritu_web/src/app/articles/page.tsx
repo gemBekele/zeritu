@@ -26,7 +26,7 @@ export default function ArticlesPage() {
           {/* Header */}
           <div className="space-y-6">
             <div>
-              <h1 className="text-4xl md:text-5xl font-black text-secondary uppercase tracking-tighter">
+              <h1 className="text-4xl md:text-5xl font-black text-foreground uppercase tracking-tighter">
                 Articles
               </h1>
               <p className="text-muted-foreground mt-2">

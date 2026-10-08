@@ -115,7 +115,7 @@ export default function ArticlePage() {
           {/* Header */}
           <div className="space-y-6">
             <div className="space-y-4">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-secondary uppercase tracking-tighter leading-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-foreground uppercase tracking-tighter leading-tight mt-4">
                 {article.title}
               </h1>
 
